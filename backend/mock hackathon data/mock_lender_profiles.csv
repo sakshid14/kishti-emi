@@ -1,0 +1,5 @@
+id,user_id,organization_name,contact_person,license_number,address,contact_number,email,created_at
+d5253c6e-9bd4-4430-806e-ba6288652fea,e43de77f-fa15-4751-b0d5-4143d87c6ef3,Quick Finance Ltd,Amit Verma,NBFC-2024-001,"700 Financial District, City 1, State 1 40001",+91-9876543220,contact@quickfinanceltd.com,2024-01-01
+1633b4cd-400a-4792-b4be-51b2bb33f0ec,1e1fa043-6dc9-40d5-b358-2ae4c3e6701e,Capital First,Rohit Gupta,NBFC-2024-002,"701 Financial District, City 2, State 2 40002",+91-9876543221,contact@capitalfirst.com,2024-01-06
+12aa7fcd-b2d1-46e5-9993-fcb04cd2bf9f,bd0fb281-d25a-4eb1-915b-9334d4135ed6,Nair Finserv,Sneha Nair,NBFC-2024-003,"702 Financial District, City 3, State 3 40003",+91-9876543222,contact@nairfinserv.com,2024-01-11
+b4838f88-ab45-43f8-aa35-fcbac847639c,3e9b74b3-cab4-42a9-a430-8a270fd86ee8,Shah Lending,Manoj Shah,NBFC-2024-004,"703 Financial District, City 4, State 4 40004",+91-9876543223,contact@shahlending.com,2024-01-16

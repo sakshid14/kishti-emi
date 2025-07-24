@@ -17,7 +17,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions: i
 
 
   useEffect(() => {
-      const socket = new WebSocket('ws://172.26.37.92/update-transaction');
+      const socket = new WebSocket('ws://172.26.37.92/ws');
   
       socket.onopen = () => {
         console.log('WebSocket connected');

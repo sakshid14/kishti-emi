@@ -1,3 +1,6 @@
+
+
+
 import React, { useState } from 'react';
 import { CreditCard, Mail, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';

@@ -75,3 +75,54 @@ def sign_in(email: str, password: str):
 
         else:
             raise HTTPException(status_code=400, detail="Invalid role")
+        
+@router.get("/getUserDetails/{user_id}")
+def get_user_details(user_id: str):
+    with Session(engine) as session:
+        # Fetch user
+        user = session.get(Users, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        if user.role != "borrower":
+            raise HTTPException(status_code=400, detail="User is not a borrower")
+
+        # Fetch borrower profile
+        profile = session.exec(
+            select(BorrowerProfile).where(BorrowerProfile.user_id == user_id)
+        ).first()
+        if not profile:
+            raise HTTPException(status_code=404, detail="Borrower profile not found")
+
+        # Fetch loan(s)
+        loans = session.exec(
+            select(Loan).where(Loan.borrower_id == profile.user_id)
+        ).all()
+
+        # Fetch EMI wallet
+        wallet = session.exec(
+            select(EMIWallet).where(EMIWallet.borrower_id == profile.user_id)
+        ).first()
+
+        # Fetch transactions
+        transactions = session.exec(
+            select(Transaction).where(Transaction.borrower_id == profile.user_id)
+        ).all()
+
+        # Fetch EMI payments
+        payments = session.exec(
+            select(EMIPayment).where(EMIPayment.borrower_id == profile.user_id)
+        ).all()
+
+        return {
+            "user": {
+                "id": str(user.id),
+                "email": user.email,
+                "role": user.role,
+            },
+            "borrower_profile": profile,
+            "loans": loans,
+            "emi_wallet": wallet,
+            "transactions": transactions,
+            "emi_payments": payments
+        }

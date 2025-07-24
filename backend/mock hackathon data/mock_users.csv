@@ -1,0 +1,13 @@
+id,email,role,password
+10094459-dc57-4dd7-ac0f-68cba7e6ab19,rajesh@tech.com,borrower,hashedpassword
+680b0e9a-9066-4e45-b715-c9a32c73a68a,priya@priya.com,borrower,hashedpassword
+b2d879e3-a5df-4e93-ab91-a5447947abfd,anil@mehta.com,borrower,hashedpassword
+78c93269-0774-480a-a2cc-e2f0c8d77b8a,sunita@rao.com,borrower,hashedpassword
+859966b6-7dd1-4c40-81c2-b0166b419ea3,vikram@singh.com,borrower,hashedpassword
+2dba24db-a37b-4865-bc09-ca8aa2664df9,neha@patel.com,borrower,hashedpassword
+f9aea90a-8147-4a56-b4c0-865d88e59c4a,amit@joshi.com,borrower,hashedpassword
+b3ba13ac-740d-4ea8-97c9-5952c514e76a,kavita@desai.com,borrower,hashedpassword
+e43de77f-fa15-4751-b0d5-4143d87c6ef3,contact@quickfinanceltd.com,lender,hashedpassword
+1e1fa043-6dc9-40d5-b358-2ae4c3e6701e,contact@capitalfirst.com,lender,hashedpassword
+bd0fb281-d25a-4eb1-915b-9334d4135ed6,contact@nairfinserv.com,lender,hashedpassword
+3e9b74b3-cab4-42a9-a430-8a270fd86ee8,contact@shahlending.com,lender,hashedpassword
