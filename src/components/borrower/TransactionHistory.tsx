@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ArrowUpRight, ArrowDownLeft, Clock, CheckCircle, XCircle, Filter } from 'lucide-react';
 import { Transaction } from '../../types';
 import { format } from 'date-fns';
@@ -7,9 +7,48 @@ interface TransactionHistoryProps {
   transactions: Transaction[];
 }
 
-const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions }) => {
+const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions: initialTransactions }) => {
   const [filter, setFilter] = useState<'all' | 'incoming_payment' | 'emi_blocked' | 'emi_paid'>('all');
+  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
+  
+  useEffect(() => {
+    setTransactions(initialTransactions); // Sync if prop changes
+  }, [initialTransactions]);
 
+
+  useEffect(() => {
+      const socket = new WebSocket('ws://172.26.37.92/update-transaction');
+  
+      socket.onopen = () => {
+        console.log('WebSocket connected');
+      };
+  
+      socket.onmessage = (event) => {
+        try {
+          const data: Transaction = JSON.parse(event.data);
+  
+          // Optional: basic validation
+          if (data?.id && data?.type && data?.amount) {
+            setTransactions(prev => [data, ...prev]);
+          }
+        } catch (error) {
+          console.error('Invalid WebSocket message:', event.data);
+        }
+      };
+  
+      socket.onerror = (err) => {
+        console.error('WebSocket error:', err);
+      };
+  
+      socket.onclose = () => {
+        console.log('WebSocket disconnected');
+      };
+  
+      return () => {
+        socket.close();
+      };
+    }, []);
+  
   const filteredTransactions = filter === 'all' 
     ? transactions 
     : transactions.filter(t => t.type === filter);
@@ -65,6 +104,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({ transactions })
         return 'text-gray-600';
     }
   };
+    
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
