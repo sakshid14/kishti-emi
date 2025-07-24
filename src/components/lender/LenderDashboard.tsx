@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { mockUsers, mockLoans, mockEMIWallets, mockTransactions, mockEMIPayments } from '../../data/mockData';
-import { BorrowerProfile } from '../../types';
+import { BorrowerProfile, LenderProfile } from '../../types';
 import BorrowerCard from './BorrowerCard';
 import StatsCard from '../common/StatsCard';
 import { Users, DollarSign, TrendingUp, Calendar, Filter } from 'lucide-react';
@@ -61,7 +61,7 @@ const LenderDashboard: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Lender Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back {(user?.profile as LenderProfile).organizationName}</h1>
         <p className="text-gray-600">
           Monitor your borrowers' EMI collections and loan portfolio performance.
         </p>
@@ -126,7 +126,6 @@ const LenderDashboard: React.FC = () => {
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">Borrower EMI Wallets</h3>
-            
             <div className="flex items-center space-x-2">
               <Filter className="w-4 h-4 text-gray-500" />
               <select

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { mockLoans, mockEMIWallets, mockTransactions } from '../../data/mockData';
 import EMIWalletCard from './EMIWalletCard';
@@ -6,10 +6,10 @@ import LoansOverview from './LoansOverview';
 import TransactionHistory from './TransactionHistory';
 import StatsCard from '../common/StatsCard';
 import { Wallet, CreditCard, TrendingUp, Calendar } from 'lucide-react';
+import { BorrowerProfile } from '../../types';
 
 const BorrowerDashboard: React.FC = () => {
   const { user } = useAuth();
-  
   const userLoans = mockLoans.filter(loan => loan.borrowerId === user?.id);
   const userWallet = mockEMIWallets.find(wallet => wallet.borrowerId === user?.id);
   const userTransactions = mockTransactions.filter(transaction => transaction.borrowerId === user?.id);
@@ -24,12 +24,16 @@ const BorrowerDashboard: React.FC = () => {
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0, 10);
 
+    useEffect(() => {
+      console.log('user', user)
+    }, [user])
+    
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Borrower Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back {(user?.profile as BorrowerProfile).ownerName}!</h1>
         <p className="text-gray-600">
-          Welcome back! Here's an overview of your EMI wallet and loan portfolio.
+          Here's an overview of your EMI wallet and loan portfolio.
         </p>
       </div>
 
