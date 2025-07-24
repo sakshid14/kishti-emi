@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from sqlmodel import Session, select
-from models import Users, Loan, EMIWallet, Transaction, EMIPayment
+from models import  Users, BorrowerProfile, LenderProfile, Loan, EMIWallet, Transaction, EMIPayment
 from db import engine
 
 router = APIRouter()
@@ -38,3 +38,40 @@ def get_emi_payments(borrower_id: str):
     with Session(engine) as session:
         payments = session.exec(select(EMIPayment).where(EMIPayment.borrower_id == borrower_id)).all()
         return payments
+
+@router.post("/sign-in")
+def sign_in(email: str, password: str):
+    with Session(engine) as session:
+    # Fetch the user by email
+        statement = select(Users).where(Users.email == email)
+        user = session.exec(statement).first()
+
+        if not user or user.password != password:
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+
+        if user.role == "borrower":
+            profile_stmt = select(BorrowerProfile).where(BorrowerProfile.user_id == user.id)
+            profile = session.exec(profile_stmt).first()
+            if not profile:
+                raise HTTPException(status_code=404, detail="Borrower profile not found")
+            return {
+                "role": "borrower",
+                "user_id": str(user.id),
+                "business_name": profile.business_name,
+                "owner_name": profile.owner_name
+            }
+
+        elif user.role == "lender":
+            profile_stmt = select(LenderProfile).where(LenderProfile.user_id == user.id)
+            profile = session.exec(profile_stmt).first()
+            if not profile:
+                raise HTTPException(status_code=404, detail="Lender profile not found")
+            return {
+                "role": "lender",
+                "user_id": str(user.id),
+                "organization_name": profile.organization_name,
+                "contact_person": profile.contact_person
+            }
+
+        else:
+            raise HTTPException(status_code=400, detail="Invalid role")
