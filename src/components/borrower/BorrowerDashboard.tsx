@@ -10,9 +10,9 @@ import { BorrowerProfile } from '../../types';
 
 const BorrowerDashboard: React.FC = () => {
   const { user } = useAuth();
-  const userLoans = mockLoans.filter(loan => loan.borrowerId === user?.id);
-  const userWallet = mockEMIWallets.find(wallet => wallet.borrowerId === user?.id);
-  const userTransactions = mockTransactions.filter(transaction => transaction.borrowerId === user?.id);
+  const userLoans = user.loans;
+  const userWallet = user.emiWallet;
+  const userTransactions = user.transactions;
 
   const totalLoanAmount = userLoans.reduce((sum, loan) => sum + loan.principalAmount, 0);
   const totalOutstanding = userLoans.reduce((sum, loan) => sum + loan.outstandingAmount, 0);

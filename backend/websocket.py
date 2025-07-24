@@ -7,8 +7,9 @@ from contextlib import asynccontextmanager
 clients: list[WebSocket] = []
 transaction_queue = asyncio.Queue()
 
-def listen_to_transactions():
+def listen_to_transactions(loop: asyncio.AbstractEventLoop):
     DATABASE_URL = "postgresql://reconrebels_1:Loknath%404044@recons.postgres.database.azure.com/postgres"
+    
     conn = psycopg2.connect(
         database="postgres",
         user="reconrebels_1",
@@ -27,14 +28,26 @@ def listen_to_transactions():
         while conn.notifies:
             notify = conn.notifies.pop(0)
             payload = notify.payload
-            asyncio.run_coroutine_threadsafe(
-                transaction_queue.put(payload), asyncio.get_event_loop()
+
+            # Use thread-safe way to schedule coroutine on the main loop
+            loop.call_soon_threadsafe(
+                asyncio.create_task,
+                transaction_queue.put(payload)
             )
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    threading.Thread(target=listen_to_transactions, daemon=True).start()
+    loop = asyncio.get_event_loop()
 
+    # Start database listener in a separate thread
+    listener_thread = threading.Thread(
+        target=listen_to_transactions,
+        args=(loop,),
+        daemon=True
+    )
+    listener_thread.start()
+
+    # Start the broadcast coroutine
     async def broadcast():
         while True:
             payload = await transaction_queue.get()
@@ -50,7 +63,6 @@ async def lifespan(app: FastAPI):
                     clients.remove(ws)
 
     asyncio.create_task(broadcast())
-
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -59,34 +71,11 @@ app = FastAPI(lifespan=lifespan)
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     clients.append(websocket)
-    print(f"Client connected. Total: {len(clients)}")
+    print(f"Client connected. Total clients: {len(clients)}")
     try:
         while True:
-            await websocket.receive_text()
+            await websocket.receive_text()  # Keeps the connection alive
     except WebSocketDisconnect:
         print("Client disconnected")
         if websocket in clients:
             clients.remove(websocket)
-# from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-# from fastapi.middleware.cors import CORSMiddleware
-
-# app = FastAPI()
-
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-
-# @app.websocket("/ws")
-# async def websocket_endpoint(websocket: WebSocket):
-#     await websocket.accept()
-#     try:
-#         while True:
-#             data = await websocket.receive_text()
-#             print(f"Received from client: {data}")
-#             await websocket.send_text(f"Server echo: {data}")
-#     except WebSocketDisconnect:
-#         print("Client disconnected")
