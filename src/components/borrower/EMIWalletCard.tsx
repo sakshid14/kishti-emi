@@ -3,6 +3,7 @@ import { Wallet, Calendar, TrendingUp } from 'lucide-react';
 import { EMIWallet } from '../../types';
 import ProgressBar from '../common/ProgressBar';
 import { format } from 'date-fns';
+import './EMIWalletCard.css'
 
 interface EMIWalletCardProps {
   wallet: EMIWallet;
@@ -10,6 +11,17 @@ interface EMIWalletCardProps {
 
 const EMIWalletCard: React.FC<EMIWalletCardProps> = ({ wallet }) => {
   const collectionPercentage = (wallet.collectedThisMonth / wallet.totalMonthlyEmi) * 100;
+
+const handleAddToEMIWallet = () => {
+  console.log("Add to EMI Wallet clicked");
+  // Add your logic here
+};
+
+const handlePrePayment = () => {
+  console.log("Pre Payment clicked");
+  // Add your logic here
+};
+
   
   return (
     <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl shadow-lg border border-blue-200 p-6">
@@ -22,8 +34,30 @@ const EMIWalletCard: React.FC<EMIWalletCardProps> = ({ wallet }) => {
             <h3 className="text-lg font-semibold text-gray-900">EMI Wallet</h3>
             <p className="text-sm text-gray-600">
               Last updated: {format(new Date(wallet.lastUpdated), 'MMM dd, yyyy HH:mm')}
+
+              {/* { {(
+              <div className="toggle-button-container">
+                <div className="toggle-button gd">
+                  <div className="btn btn-pill" id="button-3">
+                    <input type="checkbox" className="checkbox" />
+                    <div className="knob"></div>
+                    <div className="btn-bg"></div>
+                  </div>
+                </div>
+              </div>
+              )} } */}
+
+
             </p>
           </div>
+          {collectionPercentage === 100 && (
+
+            <div className="resizable-toggle">
+            <input type="checkbox" id="toggle-switch" />
+            <div className="toggle-knob"></div>
+            </div>
+          
+          )}
         </div>
       </div>
 
@@ -76,8 +110,33 @@ const EMIWalletCard: React.FC<EMIWalletCardProps> = ({ wallet }) => {
             <p className="text-lg font-bold text-orange-600">
               ₹{(wallet.totalMonthlyEmi - wallet.collectedThisMonth).toLocaleString()}
             </p>
-          </div>
+          </div>         
+
         </div>
+
+
+        <div className="grid grid-cols-2 gap-3">
+  <div className="rounded-lg p-3 shadow-sm text-center">
+    <p
+      className="rounded-lg p-3 shadow-sm buttons_EMIWallet1 cursor-pointer"
+      onClick={() => handleAddToEMIWallet()}
+    >
+      Add to EMI wallet
+    </p>
+  </div>
+
+  <div className="rounded-lg p-3 shadow-sm text-center">
+    <p
+      className="rounded-lg p-3 shadow-sm buttons_EMIWallet2 cursor-pointer"
+      onClick={() => handlePrePayment()}
+    >
+      Pre Payment
+    </p>
+  </div>
+</div>
+
+
+
       </div>
     </div>
   );
