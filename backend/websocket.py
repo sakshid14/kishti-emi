@@ -9,7 +9,7 @@ transaction_queue = asyncio.Queue()
 
 def listen_to_transactions(loop: asyncio.AbstractEventLoop):
     DATABASE_URL = "postgresql://reconrebels_1:Loknath%404044@recons.postgres.database.azure.com/postgres"
-    
+    # 
     conn = psycopg2.connect(
         database="postgres",
         user="reconrebels_1",
