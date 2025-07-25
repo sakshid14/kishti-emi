@@ -13,13 +13,21 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.compose import ColumnTransformer
 import numpy as np
 from flask import Flask, request, jsonify
+from fastapi import APIRouter, HTTPException
+from fastapi import FastAPI, Request
+from models import ProductDataInput
+
 
 
 # In[27]:
 
 
-app = Flask(__name__)
+# app = Flask(__name__)
 
+# router = APIRouter()
+
+app = FastAPI()
+# app.include_router(router)
 
 # In[2]:
 
@@ -282,35 +290,42 @@ print(f"Predicted EMI Contribution for example: {predicted_emi:.2f}%")
 # In[28]:
 
 
-@app.route('/predict_emi', methods=['POST'])
-def predict_emi():
 
-    new_data_point2 = {
-        'product_category': 'Electronics',
-        'cost_price': 20000.00,
-        'base_selling_price': 40000.00,
-        'season': 'Summer', # Or 'Winter', 'Autumn', 'Spring', 'Festival', 'Monsoon'
-        'market_demand': 'High', # Or 'Low', 'Medium'
-        'marketing_spend_per_unit': 0.00,
-        'operational_cost_per_unit': 222.00,
-        'discount_percentage': 25.00,
-        'competitor_price': 45000.00,
-        'transaction_date': '2025-07-24', # This will be processed by the function
-        'actual_selling_price': 30000.00, # 1800 * (1 - 0.08)
-        'gross_profit_per_unit': 9778.00, # 1656 - 1200 - 60 - 100
-        'profit_percentage': 32.5 # (296 / 1656) * 100
-    }
+# @app.post('/predict_emi')
+def predict_emi(request: ProductDataInput):
+
+
+    new_data_point2 = payload
+    
+    print(new_data_point2)
+    
+    # new_data_point2 = {
+    #     'product_category': 'Electronics',
+    #     'cost_price': 20000.00,
+    #     'base_selling_price': 40000.00,
+    #     'season': 'Summer', # Or 'Winter', 'Autumn', 'Spring', 'Festival', 'Monsoon'
+    #     'market_demand': 'High', # Or 'Low', 'Medium'
+    #     'marketing_spend_per_unit': 0.00,
+    #     'operational_cost_per_unit': 222.00,
+    #     'discount_percentage': 25.00,
+    #     'competitor_price': 45000.00,
+    #     'transaction_date': '2025-07-24', # This will be processed by the function
+    #     'actual_selling_price': 30000.00, # 1800 * (1 - 0.08)
+    #     'gross_profit_per_unit': 9778.00, # 1656 - 1200 - 60 - 100
+    #     'profit_percentage': 32.5 # (296 / 1656) * 100
+    # }
     
     
-    if not request.json:
-        return jsonify({"error": "Please send JSON data"}), 400
+    
+    # if not request.json:
+    #     return jsonify({"error": "Please send JSON data"}), 400
 
-    new_data_point2 = request.json
+    
     new_data_point = pd.DataFrame([new_data_point2])
     
-    new_data_point['actual_selling_price']=(1-(0.01*new_data_point['discount_percentage']))*new_data_point['base_selling_price']
-    new_data_point['gross_profit_per_unit']=df['actual_selling_price']-df['cost_price']-df['marketing_spend_per_unit']-df['operational_cost_per_unit']
-    new_data_point['profit_percentage']=(df['gross_profit_per_unit']/df['actual_selling_price'])*100
+    # new_data_point['actual_selling_price']=(1-(0.01*new_data_point['discount_percentage']))*new_data_point['base_selling_price']
+    # new_data_point['gross_profit_per_unit']=df['actual_selling_price']-df['cost_price']-df['marketing_spend_per_unit']-df['operational_cost_per_unit']
+    # new_data_point['profit_percentage']=(df['gross_profit_per_unit']/df['actual_selling_price'])*100
 
     new_data_point['transaction_date'] = pd.to_datetime(new_data_point['transaction_date'])
     new_data_point['month'] = new_data_point['transaction_date'].dt.month
@@ -322,16 +337,17 @@ def predict_emi():
     new_data_point = new_data_point.drop('transaction_date', axis=1) 
 
     try:
-        predicted_emi_contribution = model.predict(new_data_point)[0]
+        predicted_emi_contribution = model.predict(new_data_point)
+        print("1", predicted_emi_contribution[0])
         return jsonify({
-            "predicted_emi_contribution_percent_of_profit": (round(float(predicted_emi_contribution), 2) * new_data_point[gross_profit_per_unit])/100
+            "predicted_emi_contribution_percent_of_profit": (round(float(predicted_emi_contribution), 2) * new_data_point['gross_profit_per_unit'])/100
         })
     except Exception as e:
         # This catch-all is for issues during prediction (e.g., mismatch in columns after preprocessing)
         return jsonify({"error": f"Prediction failed: {e}. Ensure all required input features are present and correct."}), 500
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5050)
+# if __name__ == '__main__':
+#     app.run(debug=True, host='0.0.0.0', port=8010)
 
 
 # In[ ]:

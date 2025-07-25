@@ -1,7 +1,24 @@
 from typing import Optional
 from sqlmodel import SQLModel, Field
 from datetime import datetime, date
+# from pydantic import BaseModel
 import uuid
+
+# class ProductDataInput:
+#     product_category: str
+#     cost_price: float
+#     base_selling_price: float
+#     season: str  # e.g., 'Summer', 'Winter', 'Autumn', 'Spring', 'Festival', 'Monsoon'
+#     market_demand: str  # e.g., 'High', 'Medium', 'Low'
+#     marketing_spend_per_unit: float
+#     operational_cost_per_unit: float
+#     discount_percentage: float
+#     competitor_price: float
+#     transaction_date: date
+#     actual_selling_price: float
+#     gross_profit_per_unit: float
+#     profit_percentage: float
+    
 
 class Users(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -76,3 +93,44 @@ class EMIPayment(SQLModel, table=True):
     amount: float
     due_date: date
     status: str
+    
+class TransactionCreatePayload(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    borrower_id: uuid.UUID
+    loan_id: uuid.UUID
+    type: str
+    amount: float
+    description: Optional[str]
+    status: str
+    payment_method: Optional[str]
+    reference_number: Optional[str]
+    
+class DataPoint():
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    borrower_id: uuid.UUID
+    loan_id: uuid.UUID
+    type: str
+    amount: float
+    description: Optional[str]
+    status: str
+    payment_method: Optional[str]
+    reference_number: Optional[str]
+    
+class ProductData(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    borrower_id: uuid.UUID = Field(foreign_key="borrowerprofile.id")  # Foreign key to BorrowerProfile
+
+    product_category: str
+    cost_price: float
+    base_selling_price: float
+    season: str  # 'Summer', 'Winter', 'Autumn', 'Spring', 'Festival', 'Monsoon'
+    market_demand: str  # 'High', 'Medium', 'Low'
+    marketing_spend_per_unit: float
+    operational_cost_per_unit: float
+    discount_percentage: float
+    competitor_price: float
+    transaction_date: date
+    actual_selling_price: float
+    gross_profit_per_unit: float
+    profit_percentage: float
+

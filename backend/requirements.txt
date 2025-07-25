@@ -2,3 +2,6 @@ fastapi
 sqlmodel
 uvicorn
 psycopg2-binary
+pandas
+numpy
+scikit-learn
