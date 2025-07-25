@@ -75,7 +75,6 @@ def sign_in(email: str, password: str):
 
         else:
             raise HTTPException(status_code=400, detail="Invalid role")
-        
 @router.get("/getUserDetails/{user_id}")
 def get_user_details(user_id: str):
     with Session(engine) as session:
@@ -84,45 +83,171 @@ def get_user_details(user_id: str):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        if user.role != "borrower":
-            raise HTTPException(status_code=400, detail="User is not a borrower")
-
-        # Fetch borrower profile
-        profile = session.exec(
-            select(BorrowerProfile).where(BorrowerProfile.user_id == user_id)
-        ).first()
-        if not profile:
-            raise HTTPException(status_code=404, detail="Borrower profile not found")
-
-        # Fetch loan(s)
-        loans = session.exec(
-            select(Loan).where(Loan.borrower_id == profile.user_id)
-        ).all()
-
-        # Fetch EMI wallet
-        wallet = session.exec(
-            select(EMIWallet).where(EMIWallet.borrower_id == profile.user_id)
-        ).first()
-
-        # Fetch transactions
-        transactions = session.exec(
-            select(Transaction).where(Transaction.borrower_id == profile.user_id)
-        ).all()
-
-        # Fetch EMI payments
-        payments = session.exec(
-            select(EMIPayment).where(EMIPayment.borrower_id == profile.user_id)
-        ).all()
-
-        return {
+        response = {
             "user": {
                 "id": str(user.id),
                 "email": user.email,
                 "role": user.role,
-            },
-            "borrower_profile": profile,
-            "loans": loans,
-            "emi_wallet": wallet,
-            "transactions": transactions,
-            "emi_payments": payments
+            }
         }
+
+        if user.role == "borrower":
+            profile = session.exec(
+                select(BorrowerProfile).where(BorrowerProfile.user_id == user_id)
+            ).first()
+            if not profile:
+                raise HTTPException(status_code=404, detail="Borrower profile not found")
+
+            loans = session.exec(
+                select(Loan).where(Loan.borrower_id == user_id)
+            ).all()
+
+            wallet = session.exec(
+                select(EMIWallet).where(EMIWallet.borrower_id == user_id)
+            ).first()
+
+            transactions = session.exec(
+                select(Transaction).where(Transaction.borrower_id == user_id)
+            ).all()
+
+            payments = session.exec(
+                select(EMIPayment).where(EMIPayment.borrower_id == user_id)
+            ).all()
+
+            response.update({
+                "borrower_profile": profile,
+                "loans": loans,
+                "emi_wallet": wallet,
+                "transactions": transactions,
+                "emi_payments": payments
+            })
+
+        elif user.role == "lender":
+            profile = session.exec(
+                select(LenderProfile).where(LenderProfile.user_id == user_id)
+            ).first()
+            if not profile:
+                raise HTTPException(status_code=404, detail="Lender profile not found")
+
+            loans = session.exec(
+                select(Loan).where(Loan.lender_id == user_id)
+            ).all()
+
+            payments = session.exec(
+                select(EMIPayment).where(EMIPayment.lender_id == user_id)
+            ).all()
+
+            transactions = session.exec(
+                select(Transaction).where(Transaction.loan_id.in_([loan.id for loan in loans]))
+            ).all()
+
+            # 👇 Get unique borrower_ids from the loans
+            borrower_ids = list({loan.borrower_id for loan in loans})
+
+            # 👇 Fetch borrower profiles for those users
+            borrower_profiles = session.exec(
+                select(BorrowerProfile).where(BorrowerProfile.user_id.in_(borrower_ids))
+            ).all()
+
+            emiWallets = session.exec(
+                select(EMIWallet).where(EMIWallet.borrower_id.in_(borrower_ids))
+            ).all()
+
+            response.update({
+                "lender_profile": profile,
+                "loans_given": loans,
+                "emi_payments_received": payments,
+                "transactions": transactions,
+                "emiWallets":emiWallets,
+                "borrower_profiles": borrower_profiles  # 👈 included here
+            })
+
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported user role")
+
+        return response
+
+    with Session(engine) as session:
+        # Fetch user
+        user = session.get(Users, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        response = {
+            "user": {
+                "id": str(user.id),
+                "email": user.email,
+                "role": user.role,
+            }
+        }
+
+        if user.role == "borrower":
+            profile = session.exec(
+                select(BorrowerProfile).where(BorrowerProfile.user_id == user_id)
+            ).first()
+            if not profile:
+                raise HTTPException(status_code=404, detail="Borrower profile not found")
+
+            loans = session.exec(
+                select(Loan).where(Loan.borrower_id == user_id)
+            ).all()
+
+            wallet = session.exec(
+                select(EMIWallet).where(EMIWallet.borrower_id == user_id)
+            ).first()
+
+            transactions = session.exec(
+                select(Transaction).where(Transaction.borrower_id == user_id)
+            ).all()
+
+            payments = session.exec(
+                select(EMIPayment).where(EMIPayment.borrower_id == user_id)
+            ).all()
+
+            response.update({
+                "borrower_profile": profile,
+                "loans": loans,
+                "emi_wallet": wallet,
+                "transactions": transactions,
+                "emi_payments": payments
+            })
+
+        elif user.role == "lender":
+            profile = session.exec(
+                select(LenderProfile).where(LenderProfile.user_id == user_id)
+            ).first()
+            if not profile:
+                raise HTTPException(status_code=404, detail="Lender profile not found")
+
+            loans = session.exec(
+                select(Loan).where(Loan.lender_id == user_id)
+            ).all()
+
+            payments = session.exec(
+                select(EMIPayment).where(EMIPayment.lender_id == user_id)
+            ).all()
+
+            transactions = session.exec(
+                select(Transaction).where(Transaction.loan_id.in_([loan.id for loan in loans]))
+            ).all()
+
+            # Get unique borrower IDs from loans
+            borrower_ids = list({loan.borrower_id for loan in loans})
+
+            # Fetch borrower profiles
+            borrower_profiles = session.exec(
+                select(BorrowerProfile).where(BorrowerProfile.user_id.in_(borrower_ids))
+            ).all()
+
+            response.update({
+                "lender_profile": profile,
+                "loans_given": loans,
+                "emi_payments_received": payments,
+                "transactions": transactions,
+                "borrowers": borrower_profiles  # 👈 New field
+            })
+
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported user role")
+
+        return response

@@ -3,6 +3,11 @@ export interface User {
   email: string;
   role: 'borrower' | 'lender';
   profile: BorrowerProfile | LenderProfile;
+  loans: Loan[];
+  emiWallet:EMIWallet[];
+  transactions:Transaction;
+  borrowerProfiles:BorrowerProfile[];
+  emiPayments:EMIPayment[];
 }
 
 export interface BorrowerProfile {

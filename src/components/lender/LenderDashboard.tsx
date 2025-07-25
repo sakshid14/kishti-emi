@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { mockUsers, mockLoans, mockEMIWallets, mockTransactions, mockEMIPayments } from '../../data/mockData';
 import { BorrowerProfile, LenderProfile } from '../../types';
@@ -8,25 +8,28 @@ import { Users, DollarSign, TrendingUp, Calendar, Filter } from 'lucide-react';
 
 const LenderDashboard: React.FC = () => {
   const { user } = useAuth();
+  
   const [statusFilter, setStatusFilter] = useState<'all' | 'complete' | 'on_track' | 'at_risk'>('all');
 
+  useEffect(()=>{
+    console.log("user",user);
+  },[])
+
   // Get lender's loans and borrowers
-  const lenderLoans = mockLoans.filter(loan => loan.lenderId === user?.id);
-  const lenderBorrowerIds = [...new Set(lenderLoans.map(loan => loan.borrowerId))];
+  const lenderLoans = user?.loans;
+  const lenderBorrowerIds = [...new Set(lenderLoans?.map(loan => loan.borrowerId))];
   
-  const borrowers = mockUsers
-    .filter(u => u.role === 'borrower' && lenderBorrowerIds.includes(u.id))
-    .map(u => u.profile as BorrowerProfile);
+  const borrowers = user?.borrowerProfiles;
 
   // Calculate metrics
-  const totalLoanAmount = lenderLoans.reduce((sum, loan) => sum + loan.principalAmount, 0);
-  const totalOutstanding = lenderLoans.reduce((sum, loan) => sum + loan.outstandingAmount, 0);
-  const totalMonthlyEmi = lenderLoans.reduce((sum, loan) => sum + loan.monthlyEmi, 0);
+  const totalLoanAmount = lenderLoans?.reduce((sum, loan) => sum + loan.principalAmount, 0);
+  const totalOutstanding = lenderLoans?.reduce((sum, loan) => sum + loan.outstandingAmount, 0);
+  const totalMonthlyEmi = lenderLoans?.reduce((sum, loan) => sum + loan.monthlyEmi, 0);
   
   // EMI collection status
-  const borrowersWithWallets = borrowers.map(borrower => {
-    const borrowerLoans = lenderLoans.filter(loan => loan.borrowerId === borrower.id);
-    const wallet = mockEMIWallets.find(w => w.borrowerId === borrower.id);
+  const borrowersWithWallets = borrowers?.map(borrower => {
+    const borrowerLoans = lenderLoans?.filter(loan => loan.borrowerId === borrower.userId);
+    const wallet = user?.emiWallet.filter(wt => wt.borrowerId === borrower.userId)[0];
     
     if (!wallet) return null;
     
@@ -41,22 +44,24 @@ const LenderDashboard: React.FC = () => {
     };
   }).filter(Boolean);
 
+  useEffect(()=>{
+console.log("borrowersWithWallets",borrowersWithWallets)
+  },[borrowersWithWallets])
+
   // Filter borrowers based on status
   const filteredBorrowers = statusFilter === 'all' 
     ? borrowersWithWallets 
-    : borrowersWithWallets.filter(b => b!.status === statusFilter);
+    : borrowersWithWallets?.filter(b => b!.status === statusFilter);
 
   // Calculate status counts
   const statusCounts = {
-    complete: borrowersWithWallets.filter(b => b!.status === 'complete').length,
-    on_track: borrowersWithWallets.filter(b => b!.status === 'on_track').length,
-    at_risk: borrowersWithWallets.filter(b => b!.status === 'at_risk').length,
+    complete: borrowersWithWallets?.filter(b => b!.status === 'complete').length,
+    on_track: borrowersWithWallets?.filter(b => b!.status === 'on_track').length,
+    at_risk: borrowersWithWallets?.filter(b => b!.status === 'at_risk').length,
   };
 
   // Expected EMI for this month
-  const expectedEmiThisMonth = mockEMIPayments
-    .filter(payment => payment.lenderId === user?.id && payment.status === 'scheduled')
-    .reduce((sum, payment) => sum + payment.amount, 0);
+  const expectedEmiThisMonth = user?.emiPayments.reduce((sum, payment) => sum + payment.amount, 0);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -71,7 +76,7 @@ const LenderDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard
           title="Total Borrowers"
-          value={borrowers.length.toString()}
+          value={borrowers?.length}
           subtitle="Active loan accounts"
           icon={Users}
           color="blue"
@@ -143,14 +148,14 @@ const LenderDashboard: React.FC = () => {
         </div>
 
         <div className="p-6">
-          {filteredBorrowers.length === 0 ? (
+          {filteredBorrowers?.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p>No borrowers found for the selected filter.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredBorrowers.map((item) => (
+              {filteredBorrowers?.map((item) => (
                 <BorrowerCard
                   key={item!.borrower.id}
                   borrower={item!.borrower}

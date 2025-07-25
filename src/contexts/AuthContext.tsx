@@ -59,12 +59,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<boolean> => { 
     setIsLoading(true);
   
     try {
       const response = await fetch(`${API_BASE_URL}/sign-in?email=${email}&password=${password}`, {
-        method: 'POST', // or 'POST' if your backend expects it
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         }
@@ -72,33 +72,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
       if (response.ok) {
         const user = await response.json();
-
-        console.log("user",user);
-        try{
+        console.log("user", user);
+  
+        try {
           const res = await fetch(`${API_BASE_URL}/getUserDetails/${user.user_id}`);
-
-          if(res.ok){
+          
+          if (res.ok) {
             const user1 = await res.json();
-            const temp = {
+            const role = user1.user.role;
+  
+            let temp: any = {
               ...user1.user,
-              profile: convertKeysToPascalCase(user1.borrower_profile),
-              loans: convertListToPascalCase(user1.loans),
-              emiWallet: convertKeysToPascalCase(user1.emi_wallet),
-              transactions: convertListToPascalCase(user1.transactions),
-              emiPayments: convertListToPascalCase(user1.emi_payments),
-              
-
-            }; 
-            console.log('temp', temp)
+              transactions: convertListToPascalCase(user1.transactions || [])
+            };
+  
+            if (role === 'borrower') {
+              temp = {
+                ...temp,
+                profile: convertKeysToPascalCase(user1.borrower_profile),
+                loans: convertListToPascalCase(user1.loans),
+                emiWallet: convertKeysToPascalCase(user1.emi_wallet),
+                emiPayments: convertListToPascalCase(user1.emi_payments),
+              };
+            } else if (role === 'lender') {
+              temp = {
+                ...temp,
+                profile: convertKeysToPascalCase(user1.lender_profile),
+                loans: convertListToPascalCase(user1.loans_given),
+                emiPayments: convertListToPascalCase(user1.emi_payments_received),
+                borrowerProfiles: convertListToPascalCase(user1.borrower_profiles),
+                emiWallet: convertListToPascalCase(user1.emiWallets),
+              };
+            }
+  
+            console.log('temp', temp);
             setUser(temp);
-          }else{console.error("hey error")}
-
-        } catch(e){
-          console.error('Login failed with status:');
+          } else {
+            console.error("Failed to fetch user details");
+          }
+        } catch (e) {
+          console.error('User details fetch failed:', e);
         }
-
-        
-        // localStorage.setItem('kishti-user', JSON.stringify(user));
+  
         return true;
       } else {
         console.error('Login failed with status:', response.status);
@@ -111,6 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
     return false;
   };
+  
 
   // const login = async (email: string, password: string): Promise<boolean> => {
   //   setIsLoading(true);
